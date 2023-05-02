@@ -1,0 +1,42 @@
+{
+    "appId": "com.gwalkerux.WhisperPix",
+    "productName": "WhisperPix",
+    "copyright": "Graham Walker",
+    "directories": {
+        "output": "out",
+        "buildResources": "assets"
+    },
+    "files": [
+        "package.json",
+        "public/**/*",
+        "build/**/*",
+        "node_modules/**/*"
+    ],
+    "win": {
+        "icon": "./public/WhisperPix_icon.ico",
+        "target": [
+            "nsis"
+        ],
+        "asarUnpack": [
+            "./public/bin/shared/**",
+            "./public/bin/win32/**"
+        ]
+    },
+    "linux": {
+        "icon": "./public/WhisperPix_icon.svg",
+        "target": [
+            "deb",
+            "AppImage"
+        ],
+        "maintainer": "Graham Walker",
+        "asarUnpack": [
+            "./public/bin/shared/**",
+            "./public/bin/linux/**",
+            "**/node_modules/sharp/**",
+            "**/node_modules/exiftool-vendored/**",
+            "**/node_modules/exiftool-vendored.pl/**"
+        ]
+    },
+    "remoteBuild": false,
+    "publish": null
+}

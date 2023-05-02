@@ -1,0 +1,64 @@
+{
+  "name": "whisperpix",
+  "version": "1.0.0",
+  "private": true,
+  "main": "public/electron.js",
+  "author": "Graham Walker",
+  "description": "Turn Whisper transcriptions into EXIF metadata",
+  "homepage": ".",
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "await-spawn": "^4.0.2",
+    "bootstrap": "^5.2.3",
+    "command-exists": "^1.2.9",
+    "electron-is-dev": "^2.0.0",
+    "electron-store": "^8.1.0",
+    "exiftool-vendored": "^21.2.0",
+    "extendable-media-recorder": "^7.1.10",
+    "extendable-media-recorder-wav-encoder": "^7.0.85",
+    "fs-extra": "^11.1.1",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.7.2",
+    "react-bootstrap-icons": "^1.10.2",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "sass": "^1.60.0",
+    "sharp": "^0.31.3",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "dev-react": "react-scripts start",
+    "build-react": "react-scripts build",
+    "test-react": "react-scripts test",
+    "eject-react": "react-scripts eject",
+    "dev-electron": "electron .",
+    "pack-windows": "npm run build-react && electron-builder -w",
+    "pack-linux": "npm run build-react && electron-builder -l",
+    "pack-microsoft-store": "npm run build-react && electron-builder -w --config ./electron-builder-microsoft-store.json",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^23.2.1",
+    "electron-builder": "^23.6.0"
+  }
+}
