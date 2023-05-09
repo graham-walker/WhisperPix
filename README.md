@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./assets/appx/Wide310x150Logo.png" width="155px">
+    <img src="./Logo.png" width="200px">
     <br/>
     <i>Turn Whisper transcriptions into EXIF metadata</i>
 </p>
