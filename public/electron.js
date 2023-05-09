@@ -247,7 +247,7 @@ app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
     }
-})
+});
 
 // Communicate with render process
 ipcMain.handle('INIT', async () => {
@@ -346,6 +346,11 @@ ipcMain.handle('LOAD_FILE', async (e, file) => {
 
 ipcMain.handle('TRANSCRIBE', async (e, buffer, filePath) => {
     try {
+        if (process.windowsStore && settings.useEmbeddedFfmpeg && !settings.useEmbeddedWhisper) {
+            showErrorBox('Embedded FFmpeg cannot be used with OpenAI Whisper when the app is installed from the Microsoft Store. Switch to external FFmpeg in the settings menu.');
+            throw new Error('Invalid configuration');
+        }
+
         // Verify FFmpeg
         const ffmpegPath = settings.useEmbeddedFfmpeg ? embeddedFfmpegPath : 'ffmpeg';
         if (!settings.useEmbeddedFfmpeg && !commandExistsSync('ffmpeg')) {
@@ -413,8 +418,8 @@ ipcMain.handle('TRANSCRIBE', async (e, buffer, filePath) => {
 
             const transcription = (await fs.readFile(transcriptionFile)).toString().trim().replaceAll('\r\n', '\n').replaceAll('\n', '');
             // const transcription = JSON.parse((await fs.readFile(transcriptionFile)).toString()).transcription.recuce((acc, segment) => acc += segment.text, '').trim();
-            
-            const metadata = settings.addMetadataToComment ? `\n\nAudio file: ${path.basename(audioFile)}\nUsing: whisper.cpp 1.2.1\nModel: ${settings.cppModel || path.basename(embeddedModelPath)}\nLanguage: ${settings.language}\nDate: ${new Date().toISOString()}` : '';
+
+            const metadata = settings.addMetadataToComment ? `\n\nAudio file: ${path.basename(audioFile)}\nUsing: whisper.cpp 1.2.1\nModel: ${settings.cppModel ? path.basename(settings.cppModel) : path.basename(embeddedModelPath)}\nLanguage: ${settings.language}\nDate: ${new Date().toISOString()}` : '';
 
             await fs.appendFile(recordingsFile, `${timestamp}\t${filePath}\r\n`);
             return transcription + metadata;
@@ -442,7 +447,7 @@ ipcMain.handle('TRANSCRIBE', async (e, buffer, filePath) => {
         }
     } catch (err) {
         if (typeof err === 'object' && err !== null) {
-            if (err.message !== 'Missing dependency') showErrorBox('Failed to transcribe audio.');
+            if (err.message !== 'Missing dependency' && err.message !== 'Invalid configuration') showErrorBox('Failed to transcribe audio.');
             throw err.stderr || err;
         } else {
             throw err;
