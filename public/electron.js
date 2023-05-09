@@ -515,6 +515,15 @@ ipcMain.on('UPDATE_SETTING', (e, key, value) => {
 });
 
 ipcMain.on('OPEN_FILE', async (e, filePath) => {
+    // shell.openPath does not automatically translate the path to the sandboxed path if packaged as appx
+    if (process.windowsStore && filePath === recordingsDir) {
+        try {
+            const randomSuffix = path.basename(path.join(path.dirname(app.getAppPath()), '../..')).split('_').pop(); // Get the appx random suffix from the install dir
+            filePath = path.join(path.join(app.getPath('appData'), '..'), `Local/Packages/1018GrahamWalker.WhisperPix_${randomSuffix}/LocalCache/Roaming/whisperpix/WhisperPix Recordings`);
+            if (!fs.existsSync(filePath)) filePath = recordingsDir; // Reset if not sandboxed
+        } catch (err) { filePath = recordingsDir; }
+    }
+    
     try {
         if (typeof filePath !== 'string') filePath = '';
         if (filePath === recordingsDir) await fs.ensureDir(recordingsDir);
