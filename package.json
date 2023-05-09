@@ -37,6 +37,7 @@
     "pack-windows": "npm run build-react && electron-builder -w",
     "pack-linux": "npm run build-react && electron-builder -l",
     "pack-microsoft-store": "npm run build-react && electron-builder -w --config ./electron-builder-microsoft-store.json",
+    "pack-self-signed-appx": "npm run build-react && electron-builder -w --config ./electron-builder-self-signed-appx.json",
     "postinstall": "electron-builder install-app-deps"
   },
   "eslintConfig": {

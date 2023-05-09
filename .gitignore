@@ -26,4 +26,5 @@ yarn-debug.log*
 yarn-error.log*
 
 /electron-builder-microsoft-store.json
+/electron-builder-self-signed-appx.json
 /NOTES.md
