@@ -280,6 +280,7 @@ ipcMain.handle('OPEN_DIRECTORY', async (e, directory, currentDirectory) => {
                 name: file.name,
                 path: path.join(directory, file.name),
                 ext: path.extname(file.name),
+                file: file.isFile(),
                 directory: file.isDirectory(),
                 thumbnail: null,
                 comment: '',
@@ -325,6 +326,11 @@ ipcMain.handle('GET_IMAGE_DATA', async (e, filePath) => {
 
 ipcMain.handle('LOAD_FILE', async (e, file) => {
     file.loaded = true;
+
+    if (!file.file) { // If file is a symlink or other non file or directory
+        file.invalid = true;
+        return file;
+    }
 
     try {
         // -unknown is needed to retrieve GIF metadata, adding -fast breaks -unknown
