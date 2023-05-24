@@ -452,6 +452,11 @@ button svg {
     scrollbar-gutter: stable;
     padding-left: 0 !important;
 
+    .modal-dialog {
+        max-width: unset;
+        width: 550px;
+    }
+
     .modal-content {
         border-color: $teal-200;
 

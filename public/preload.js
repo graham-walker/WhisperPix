@@ -12,4 +12,5 @@ contextBridge.exposeInMainWorld('api', {
     eraseRecordings: () => ipcRenderer.invoke('ERASE_RECORDINGS'),
     chooseFile: () => ipcRenderer.invoke('CHOOSE_FILE'),
     toggleFavorite: (directory) => ipcRenderer.invoke('TOGGLE_FAVORITE', directory),
+    clearCache: () => ipcRenderer.send('CLEAR_CACHE'),
 });

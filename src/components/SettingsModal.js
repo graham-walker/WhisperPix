@@ -73,9 +73,10 @@ const SettingsModal = (props) => {
                 </Stack>
                 <Stack direction="horizontal" gap={2} className="mb-2">
                     <div className="w-100">
-                        <p className="mb-2 fw-bold">Directories &amp; Keywords</p>
+                        <p className="mb-2 fw-bold">History &amp; Cache</p>
                         <Button
                             variant="light"
+                            className="me-1"
                             onClick={() => {
                                 updateSettings({ recentDirectories: [], favoritedDirectories: 0, recentKeywords: [] });
                                 window.api.updateSetting('recentDirectories', []);
@@ -84,6 +85,14 @@ const SettingsModal = (props) => {
                             }}
                         >
                             Clear History
+                        </Button>
+                        <Button
+                            variant="light"
+                            onClick={() => {
+                                window.api.clearCache();
+                            }}
+                        >
+                            Clear Cache
                         </Button>
                     </div>
                     <div className="w-100">

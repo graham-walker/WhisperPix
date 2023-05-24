@@ -9,6 +9,7 @@ const Store = require('electron-store');
 const { version } = require('../package.json');
 const os = require('os');
 const exiftool = require('exiftool-vendored').exiftool;
+const crypto = require('crypto');
 
 sharp.cache({ files: 0 }); // Fixes WebP files getting locked and being unable to write EXIF metadata
 
@@ -18,6 +19,7 @@ const repoUrl = 'https://github.com/graham-walker/WhisperPix';
 const dataDir = app.getPath('userData');
 const recordingsDir = path.join(dataDir, 'WhisperPix Recordings');
 const recordingsFile = path.join(recordingsDir, 'Recordings List.txt');
+const cacheDir = path.join(dataDir, 'WhisperPix Cache');
 
 const embeddedFfmpegPath = path.join(__dirname, process.platform === 'win32'
     ? '/bin/win32/ffmpeg-n6.0-latest-win64-lgpl-6.0/bin/ffmpeg'
@@ -325,6 +327,9 @@ ipcMain.handle('GET_IMAGE_DATA', async (e, filePath) => {
 });
 
 ipcMain.handle('LOAD_FILE', async (e, file) => {
+    const cacheThumbnailFile = path.join(cacheDir, crypto.createHash('md5').update(file.path + ((await fs.stat(file.path)).mtime)).digest('hex') + '.webp');
+    const cacheMetadataFile = cacheThumbnailFile.slice(0, -5) + '.json';
+    
     file.loaded = true;
 
     if (!file.file) { // If file is a symlink or other non file or directory
@@ -333,9 +338,15 @@ ipcMain.handle('LOAD_FILE', async (e, file) => {
     }
 
     try {
-        // -unknown is needed to retrieve GIF metadata, adding -fast breaks -unknown
-        // -n disables print conversion and gets values in raw format
-        file.metadata = await exiftool.read(file.path, ['-unknown', '-n']);
+        await fs.ensureDir(cacheDir);
+        if (fs.existsSync(cacheMetadataFile)) {
+            file.metadata = JSON.parse(await fs.readFile(cacheMetadataFile));
+        } else {
+            // -unknown is needed to retrieve GIF metadata, adding -fast breaks -unknown
+            // -n disables print conversion and gets values in raw format
+            file.metadata = await exiftool.read(file.path, ['-unknown', '-n']);
+            fs.writeFileSync(cacheMetadataFile, JSON.stringify(file.metadata));
+        }
         file.parsed = parseMetadata(file.metadata);
     } catch (err) {
         file.invalid = true;
@@ -343,8 +354,19 @@ ipcMain.handle('LOAD_FILE', async (e, file) => {
 
     if (!file.invalid) {
         try {
-            if (settings.thumbnailsPreviewsEnabled === 'both' || settings.thumbnailsPreviewsEnabled === 'thumbnails_only') file.thumbnail = `data:image/webp;base64,${(await sharp(file.path).resize(thumbnailSize).webp().toBuffer()).toString('base64')}`;
-        } catch (err) { }
+            if (settings.thumbnailsPreviewsEnabled === 'both' || settings.thumbnailsPreviewsEnabled === 'thumbnails_only') {
+                let thumbnailBuffer;
+                if (fs.existsSync(cacheThumbnailFile)) {
+                    thumbnailBuffer = await fs.readFile(cacheThumbnailFile);
+                } else {
+                    thumbnailBuffer = await sharp(file.path).resize(thumbnailSize).webp().toBuffer();
+                    await fs.writeFile(cacheThumbnailFile, thumbnailBuffer);
+                }
+                file.thumbnail = `data:image/webp;base64,${thumbnailBuffer.toString('base64')}`;
+            }
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     return file;
@@ -585,6 +607,22 @@ ipcMain.handle('TOGGLE_FAVORITE', (e, directory) => {
 
     updateSetting('recentDirectories', recentDirectories);
     return { recentDirectories, favoritedDirectories: settings.favoritedDirectories };
+});
+
+ipcMain.on('CLEAR_CACHE', async (e) => {
+    try {
+        await fs.ensureDir(cacheDir);
+        let cacheFiles = (await fs.readdir(cacheDir)).length;
+        fs.emptyDirSync(cacheDir);
+        dialog.showMessageBoxSync(win, {
+            title,
+            type: 'info',
+            message: `Deleted ${cacheFiles} temporary files.`,
+        });
+    } catch (err) {
+        showErrorBox('Failed to clear cache.');
+        throw err;
+    }
 });
 
 const updateSetting = (key, value) => {
