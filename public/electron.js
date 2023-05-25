@@ -25,7 +25,8 @@ const embeddedFfmpegPath = path.join(__dirname, process.platform === 'win32'
     ? '/bin/win32/ffmpeg-n6.0-latest-win64-lgpl-6.0/bin/ffmpeg'
     : '/bin/linux/ffmpeg-n6.0-latest-linux64-lgpl-6.0/bin/ffmpeg'
 ).replace('app.asar' + path.sep + 'build', 'app.asar.unpacked' + path.sep + 'public');
-const embeddedModelPath = path.join(__dirname, '/bin/shared/whisper.cpp-1.2.1/models/ggml-tiny.bin')
+const whisperCppVersion = '1.4.0';
+const embeddedModelPath = path.join(__dirname, `/bin/shared/whisper.cpp/models/ggml-tiny.bin`)
     .replace('app.asar' + path.sep + 'build', 'app.asar.unpacked' + path.sep + 'public');
 
 app.commandLine.appendSwitch('disable-pinch'); // Disable pinch zoom
@@ -260,6 +261,7 @@ ipcMain.handle('INIT', async () => {
         repoUrl,
         recordingsDir,
         platform: process.platform,
+        whisperCppVersion,
     };
 });
 
@@ -431,29 +433,26 @@ ipcMain.handle('TRANSCRIBE', async (e, buffer, filePath) => {
         await fs.ensureDir(recordingsDir);
         const timestamp = Date.now();
         const audioFile = path.join(recordingsDir, timestamp + (settings.audioCodec === 'audio/wav' ? '.wav' : '.opus'));
+        const transcriptionFile = path.join(recordingsDir, timestamp + '.json');
         await fs.writeFile(audioFile, Buffer.from(buffer));
         updateSetting('recordingsBytes', settings.recordingsBytes + buffer.byteLength);
 
         // Spawn Whisper
         if (settings.useEmbeddedWhisper) {
-            whisperPath = path.join(__dirname, `/bin/${process.platform === 'win32' ? 'win32' : 'linux'}/whisper.cpp-1.2.1/main`).replace('app.asar' + path.sep + 'build', 'app.asar.unpacked' + path.sep + 'public');
-            const transcriptionFile = path.join(recordingsDir, timestamp + '.txt');
+            whisperPath = path.join(__dirname, `/bin/${process.platform === 'win32' ? 'win32' : 'linux'}/whisper.cpp-${whisperCppVersion}/main`).replace('app.asar' + path.sep + 'build', 'app.asar.unpacked' + path.sep + 'public');
             const tempAudioFile = audioFile.slice(0, -path.extname(audioFile).length) + '.temp.wav';
 
             await spawn(ffmpegPath, ['-i', audioFile, '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', tempAudioFile]); // main currently runs only with 16-bit WAV files
-            await spawn(whisperPath, ['--file', tempAudioFile, '--model', settings.cppModel || embeddedModelPath, '--language', settings.language, '--output-txt', '--output-file', transcriptionFile.slice(0, -4)]);
+            await spawn(whisperPath, ['--file', tempAudioFile, '--model', settings.cppModel || embeddedModelPath, '--language', settings.language, '--output-json', '--output-file', transcriptionFile.slice(0, -5)]);
             if (!fs.existsSync(transcriptionFile)) throw new Error('No transcription found'); // whisper.cpp doesn't always give an error on failure
 
-            const transcription = (await fs.readFile(transcriptionFile)).toString().trim().replaceAll('\r\n', '\n').replaceAll('\n', '');
-            // const transcription = JSON.parse((await fs.readFile(transcriptionFile)).toString()).transcription.recuce((acc, segment) => acc += segment.text, '').trim();
+            const transcription = JSON.parse((await fs.readFile(transcriptionFile)).toString()).transcription.reduce((acc, segment) => acc += segment.text, '').trim();
 
-            const metadata = settings.addMetadataToComment ? `\n\nAudio file: ${path.basename(audioFile)}\nUsing: whisper.cpp 1.2.1\nModel: ${settings.cppModel ? path.basename(settings.cppModel) : path.basename(embeddedModelPath)}\nLanguage: ${settings.language}\nDate: ${new Date().toISOString()}` : '';
+            const metadata = settings.addMetadataToComment ? `\n\nAudio file: ${path.basename(audioFile)}\nUsing: whisper.cpp ${whisperCppVersion}\nModel: ${settings.cppModel ? path.basename(settings.cppModel) : path.basename(embeddedModelPath)}\nLanguage: ${settings.language}\nDate: ${new Date().toISOString()}` : '';
 
             await fs.appendFile(recordingsFile, `${timestamp}\t${filePath}\r\n`);
             return transcription + metadata;
         } else {
-            const transcriptionFile = path.join(recordingsDir, timestamp + '.json');
-
             if (!settings.seenSpeedWarning) {
                 dialog.showMessageBoxSync(win, {
                     title,

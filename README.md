@@ -28,7 +28,7 @@ WhisperPix is open-source. You can download and build the app for Windows or Lin
 ### Whisper
 WhisperPix has the option to transcribe audio with either [whisper.cpp](https://github.com/ggerganov/whisper.cpp) (CPU) or [OpenAI Whisper](https://github.com/openai/whisper) (CPU/GPU).
 
-WhisperPix works out of the box by using an embedded version of whisper.cpp v1.2.1 and tiny model (ggml-tiny.bin) by default.
+WhisperPix works out of the box by using an embedded version of whisper.cpp v1.4.0 and tiny model (ggml-tiny.bin) by default.
 
 To use OpenAI Whisper it must first be installed on your machine by running:
 ```

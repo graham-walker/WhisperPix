@@ -183,7 +183,7 @@ const SettingsModal = (props) => {
                                 value={settings.useEmbeddedWhisper}
                                 onChange={handleChange}
                             >
-                                <option value="true">whisper.cpp &#40;CPU&#41;</option>
+                                <option value="true">whisper.cpp {settings.whisperCppVersion} &#40;CPU&#41;</option>
                                 <option value="false">OpenAI Whisper &#40;CPU/GPU&#41;</option>
                             </Form.Select>
                         </Form.Group>
