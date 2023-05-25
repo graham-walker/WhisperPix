@@ -329,7 +329,8 @@ ipcMain.handle('GET_IMAGE_DATA', async (e, filePath) => {
 });
 
 ipcMain.handle('LOAD_FILE', async (e, file) => {
-    const cacheThumbnailFile = path.join(cacheDir, crypto.createHash('md5').update(file.path + ((await fs.stat(file.path)).mtime)).digest('hex') + '.webp');
+    let stats = await fs.stat(file.path);
+    const cacheThumbnailFile = path.join(cacheDir, crypto.createHash('md5').update(file.path + stats?.mtime + stats?.size).digest('hex') + '.webp');
     const cacheMetadataFile = cacheThumbnailFile.slice(0, -5) + '.json';
 
     file.loaded = true;
