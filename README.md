@@ -1,7 +1,7 @@
 <p align="center">
     <img src="./Logo.png" width="200px">
     <br/>
-    <i>Turn Whisper transcriptions into EXIF metadata</i>
+    <i>Add comments to your photos with your voice</i>
 </p>
 <p align="center">
         &#8226; <a href="#install">INSTALL</a><br/>

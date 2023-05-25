@@ -4,7 +4,7 @@
   "private": true,
   "main": "public/electron.js",
   "author": "Graham Walker",
-  "description": "Turn Whisper transcriptions into EXIF metadata",
+  "description": "Add comments to your photos with your voice",
   "homepage": ".",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
