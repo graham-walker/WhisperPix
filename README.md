@@ -15,13 +15,13 @@
 > WhisperPix uses OpenAI's [Whisper](https://github.com/openai/whisper) speech recognition to accurately transcribe spoken words and save them to a photo's EXIF metadata.
 
 ## Install
+Download the latest release for Windows or Linux [here](https://github.com/graham-walker/WhisperPix/releases/latest).
+
+The Windows release can also be obtained from the Microsoft Store:
+<br/>
 <a href="https://www.microsoft.com/store/apps/9MTFPKPLBVX4">
    <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Download WhisperPix" />
 </a>
-
-Or download the Linux releases [here](https://github.com/graham-walker/WhisperPix/releases/latest).
-
-WhisperPix is open-source. You can download and build the app for Windows or Linux by following the instructions [here](#building).
 
 ## Configuration
 
